@@ -1,5 +1,9 @@
 use_default_settings:
-  engines: false  # Don't load default engines (prevents init errors for unused engines)
+  engines:
+    keep_only:
+      - duckduckgo
+      - wikipedia
+      - bing
 
 server:
   port: 8080
@@ -16,13 +20,4 @@ search:
   formats:
     - html
     - json
-engines:
-  # Enable these engines
-  - name: duckduckgo
-    disabled: false
-
-  - name: wikipedia
-    disabled: false
-
-  - name: bing
-    disabled: false
+engines: []  # Engines are defined in keep_only above
