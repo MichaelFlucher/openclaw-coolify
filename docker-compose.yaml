@@ -94,6 +94,9 @@ services:
       - docker-proxy
 
     command: ["bash", "/app/scripts/bootstrap.sh"]
+    labels:
+      - "traefik.http.middlewares.openclaw-auth.basicauth.users=${BASIC_AUTH_CREDENTIALS}"
+      - "traefik.http.routers.openclaw-https.middlewares=openclaw-auth"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18789/"]
       interval: 30s
