@@ -30,7 +30,6 @@
     "providers": {
       "nvidia": {
         "baseUrl": "https://integrate.api.nvidia.com/v1",
-        "apiKey": "${NVIDIA_API_KEY}",
         "api": "openai-completions",
         "models": [
           {
@@ -85,7 +84,6 @@
       },
       "google": {
         "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
-        "apiKey": "${GEMINI_API_KEY}",
         "api": "google-generative-ai",
         "models": [
           {
