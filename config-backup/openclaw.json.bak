@@ -219,7 +219,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "200d8b8ab1e06d596a35276644ffb7a19393d8e5a7036f4b"
+      "token": "${GATEWAY_AUTH_TOKEN}"
     },
     "trustedProxies": [
       "*"

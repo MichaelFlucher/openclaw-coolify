@@ -30,7 +30,7 @@
     "providers": {
       "nvidia": {
         "baseUrl": "https://integrate.api.nvidia.com/v1",
-        "apiKey": "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",
+        "apiKey": "${NVIDIA_API_KEY}",
         "api": "openai-completions",
         "models": [
           {
@@ -85,7 +85,7 @@
       },
       "google": {
         "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
-        "apiKey": "AIzaSyAncvDAu-A2-UOA3Qb0MnlowKdhClRPqcA",
+        "apiKey": "${GEMINI_API_KEY}",
         "api": "google-generative-ai",
         "models": [
           {
@@ -266,7 +266,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "200d8b8ab1e06d596a35276644ffb7a19393d8e5a7036f4b"
+      "token": "${GATEWAY_AUTH_TOKEN}"
     },
     "trustedProxies": [
       "*"
