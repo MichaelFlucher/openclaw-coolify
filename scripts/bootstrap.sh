@@ -141,7 +141,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "maxConcurrent": 4,
       "subagents": {
         "maxConcurrent": 8,
-        "model": "google/gemini-3-flash-preview"
+        "model": "google/gemini-2.0-flash"
       },
       "sandbox": {
         "mode": "non-main",
@@ -152,13 +152,13 @@ if [ ! -f "$CONFIG_FILE" ]; then
       }
     },
     "list": [
-      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "google/gemini-3-flash-preview", "fallbacks": ["nvidia/moonshotai/kimi-k2-thinking", "nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"] }},
+      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "google/gemini-2.0-flash", "fallbacks": ["nvidia/moonshotai/kimi-k2-thinking", "nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"] }},
       {
         "id": "kimi_specialist",
         "name": "Kimi K2 Thinking (NVIDIA)",
         "workspace": "/data/openclaw-kimi_specialist",
         "model": {
-          "primary": "google/gemini-3-flash-preview",
+          "primary": "google/gemini-2.0-flash",
           "fallbacks": ["nvidia/moonshotai/kimi-k2-thinking", "nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"]
         }
       },
@@ -183,6 +183,29 @@ if [ ! -f "$CONFIG_FILE" ]; then
   "models": {
     "mode": "merge",
     "providers": {
+      "google": {
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+        "apiKey": "\${GEMINI_API_KEY}",
+        "api": "google-generative-ai",
+        "models": [
+          {
+            "id": "gemini-2.0-flash",
+            "name": "Gemini 2.0 Flash",
+            "reasoning": false,
+            "input": ["text"],
+            "contextWindow": 1048576,
+            "maxTokens": 8192
+          },
+          {
+            "id": "gemini-2.5-pro",
+            "name": "Gemini 2.5 Pro",
+            "reasoning": true,
+            "input": ["text"],
+            "contextWindow": 1048576,
+            "maxTokens": 8192
+          }
+        ]
+      },
       "nvidia": {
         "baseUrl": "https://integrate.api.nvidia.com/v1",
         "apiKey": "\${NVIDIA_API_KEY}",
