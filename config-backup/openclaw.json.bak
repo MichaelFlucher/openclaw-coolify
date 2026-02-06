@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.3-1",
+    "lastTouchedAt": "2026-02-06T17:45:21.762Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-02-06T17:22:04.898Z",
+    "lastRunVersion": "2026.2.3-1",
+    "lastRunCommand": "onboard",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "google:default": {
+        "provider": "google",
+        "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "anthropic": {
+        "baseUrl": "https://api.anthropic.com/v1",
+        "apiKey": "${ANTHROPIC_API_KEY}",
+        "api": "anthropic-messages",
+        "models": [
+          {
+            "id": "claude-opus-4-6",
+            "name": "Claude Opus 4.6",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "claude-sonnet-3-7",
+            "name": "Claude Sonnet 3.7",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "nvidia": {
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
+        "apiKey": "${NVIDIA_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "moonshotai/kimi-k2.5",
+            "name": "Kimi K2.5 (NVIDIA)",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "moonshotai/kimi-k2-thinking",
+            "name": "Kimi K2 Thinking (NVIDIA)",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "moonshotai/kimi-k2-instruct",
+            "name": "Kimi K2 Instruct (NVIDIA)",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "google": {
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+        "apiKey": "${GOOGLE_API_KEY}",
+        "api": "google-generative-ai",
+        "models": [
+          {
+            "id": "gemini-3-pro-preview",
+            "name": "Gemini 3 Pro Preview",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 64000
+          },
+          {
+            "id": "gemini-3-flash-preview",
+            "name": "Gemini 3 Flash Preview",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1000000,
+            "maxTokens": 64000
+          },
+          {
+            "id": "gemini-3-pro-image-preview",
+            "name": "Gemini 3 Pro Image Preview",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 65000,
+            "maxTokens": 32000
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "google/gemini-3-flash-preview",
+        "fallbacks": [
+          "google/gemini-2.0-flash",
+          "nvidia/moonshotai/kimi-k2-thinking",
+          "nvidia/moonshotai/kimi-k2-instruct",
+          "nvidia/moonshotai/kimi-k2.5"
+        ]
+      },
+      "workspace": "/data/openclaw-workspace",
+      "envelopeTimestamp": "on",
+      "envelopeElapsed": "on",
+      "cliBackends": {},
+      "heartbeat": {
+        "every": "1h"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8,
+        "model": "google/gemini-2.0-flash"
+      },
+      "sandbox": {
+        "mode": "non-main",
+        "scope": "session",
+        "browser": {
+          "enabled": true
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "name": "default",
+        "workspace": "/data/openclaw-workspace",
+        "model": {
+          "primary": "google/gemini-3-flash-preview",
+          "fallbacks": [
+            "nvidia/moonshotai/kimi-k2-thinking",
+            "nvidia/moonshotai/kimi-k2-instruct",
+            "nvidia/moonshotai/kimi-k2.5"
+          ]
+        }
+      },
+      {
+        "id": "gemini_3_flash",
+        "name": "Gemini 3 Flash Preview",
+        "workspace": "/data/openclaw-workspace",
+        "model": {
+          "primary": "google/gemini-3-flash-preview"
+        }
+      },
+      {
+        "id": "gemini_3_pro",
+        "name": "Gemini 3 Pro Preview",
+        "workspace": "/data/openclaw-workspace",
+        "model": {
+          "primary": "google/gemini-3-pro-preview"
+        }
+      },
+      {
+        "id": "claude_opus",
+        "name": "Claude Opus 4.6 (Anthropic)",
+        "workspace": "/data/openclaw-workspace",
+        "model": {
+          "primary": "anthropic/claude-opus-4-6"
+        }
+      }
+    ]
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": true,
+    "nativeSkills": true,
+    "text": true,
+    "bash": true,
+    "config": true,
+    "debug": true,
+    "restart": true,
+    "useAccessGroups": true
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan",
+    "controlUi": {
+      "enabled": true,
+      "allowInsecureAuth": false
+    },
+    "auth": {
+      "mode": "token",
+      "token": "200d8b8ab1e06d596a35276644ffb7a19393d8e5a7036f4b"
+    },
+    "trustedProxies": [
+      "*"
+    ],
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "skills": {
+    "allowBundled": [
+      "*"
+    ],
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {
+    "enabled": true,
+    "entries": {
+      "whatsapp": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "google-antigravity-auth": {
+        "enabled": true
+      }
+    }
+  }
+}
