@@ -8,15 +8,29 @@
 
 When merging, always target `coolify`, never `main`.
 
-## NVIDIA NIM Models
+## Model Setup
 
-Provider: `nvidia` | API type: `openai-completions` (Chat Completions, NOT Responses API)
+### Default agent (main + kimi_specialist)
 
-| Model ID | Type | Notes |
-|---|---|---|
-| `moonshotai/kimi-k2-thinking` | Reasoning (primary) | Chain-of-thought, good availability |
-| `moonshotai/kimi-k2-instruct` | Fast (fallback 1) | No reasoning, best availability |
-| `moonshotai/kimi-k2.5` | Reasoning (fallback 2) | Often overloaded on free tier |
+| Priority | Model | Provider |
+|----------|-------|----------|
+| **Primary** | `google/gemini-3-flash-preview` | Google (built-in) |
+| **Fallback 1** | `nvidia/moonshotai/kimi-k2-thinking` | NVIDIA NIM |
+| **Fallback 2** | `nvidia/moonshotai/kimi-k2-instruct` | NVIDIA NIM |
+| **Fallback 3** | `nvidia/moonshotai/kimi-k2.5` | NVIDIA NIM |
+
+### Additional agents
+
+| Agent ID | Model | Provider |
+|----------|-------|----------|
+| `claude_opus` | `anthropic/claude-opus-4-6` | Anthropic |
+| `gemini_pro` | `google/gemini-2.5-pro` | Google (built-in) |
+
+### Provider notes
+
+- **Google Gemini**: Built-in provider. Do NOT add a custom `models.providers.google` block — it breaks the API (v1 vs v1beta field mismatch). Just set `GEMINI_API_KEY` env var.
+- **NVIDIA NIM**: Requires `api: "openai-completions"` (NOT `"openai-responses"`). Kimi K2.5 is often overloaded on the free tier.
+- **Anthropic**: Custom provider with `api: "anthropic-messages"`. Requires `ANTHROPIC_API_KEY` env var.
 
 Fallback chain is configured in `agents.list[].model.fallbacks` and auto-triggered when all auth profiles for a provider fail.
 
