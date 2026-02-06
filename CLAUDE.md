@@ -34,6 +34,10 @@ When merging, always target `coolify`, never `main`.
 
 Fallback chain is configured in `agents.list[].model.fallbacks` and auto-triggered when all auth profiles for a provider fail. **Every provider in the fallback chain needs an auth profile** — providers without one are skipped silently.
 
+### API key storage
+
+**Never put `apiKey` in `models.providers.*` in `openclaw.json`.** Store all API keys only in `auth-profiles.json` (`/data/.openclaw/agents/main/agent/auth-profiles.json`). This keeps `openclaw.json` safe to back up and commit without redacting secrets. The provider config in `openclaw.json` should only contain `baseUrl`, `api`, and `models`. When backing up `openclaw.json`, still redact `gateway.auth.token`.
+
 ## Troubleshooting
 
 - **"Unknown model" after changing models**: Sessions cache the model name. Clear sessions at `/data/.openclaw/agents/main/sessions/` and restart the container.
