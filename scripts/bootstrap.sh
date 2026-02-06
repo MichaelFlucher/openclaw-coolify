@@ -141,7 +141,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "maxConcurrent": 4,
       "subagents": {
         "maxConcurrent": 8,
-        "model": "nvidia/moonshotai/kimi-k2-thinking"
+        "model": "google/gemini-3-flash-preview"
       },
       "sandbox": {
         "mode": "non-main",
@@ -152,14 +152,14 @@ if [ ! -f "$CONFIG_FILE" ]; then
       }
     },
     "list": [
-      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "nvidia/moonshotai/kimi-k2-thinking", "fallbacks": ["nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"] }},
+      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "google/gemini-3-flash-preview", "fallbacks": ["nvidia/moonshotai/kimi-k2-thinking", "nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"] }},
       {
         "id": "kimi_specialist",
         "name": "Kimi K2 Thinking (NVIDIA)",
         "workspace": "/data/openclaw-kimi_specialist",
         "model": {
-          "primary": "nvidia/moonshotai/kimi-k2-thinking",
-          "fallbacks": ["nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"]
+          "primary": "google/gemini-3-flash-preview",
+          "fallbacks": ["nvidia/moonshotai/kimi-k2-thinking", "nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"]
         }
       }
     ]
