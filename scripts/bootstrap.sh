@@ -161,6 +161,22 @@ if [ ! -f "$CONFIG_FILE" ]; then
           "primary": "google/gemini-3-flash-preview",
           "fallbacks": ["nvidia/moonshotai/kimi-k2-thinking", "nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"]
         }
+      },
+      {
+        "id": "claude_opus",
+        "name": "Claude Opus 4.6 (Anthropic)",
+        "workspace": "/data/openclaw-workspace",
+        "model": {
+          "primary": "anthropic/claude-opus-4-6"
+        }
+      },
+      {
+        "id": "gemini_pro",
+        "name": "Gemini 2.5 Pro (Google)",
+        "workspace": "/data/openclaw-workspace",
+        "model": {
+          "primary": "google/gemini-2.5-pro"
+        }
       }
     ]
   },
