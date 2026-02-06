@@ -139,6 +139,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
         "every": "1h"
       },
       "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8,
+        "model": "nvidia/moonshotai/kimi-k2-thinking"
+      },
       "sandbox": {
         "mode": "non-main",
         "scope": "session",
@@ -148,13 +152,14 @@ if [ ! -f "$CONFIG_FILE" ]; then
       }
     },
     "list": [
-      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}"},
+      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "nvidia/moonshotai/kimi-k2-thinking", "fallbacks": ["nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"] }},
       {
         "id": "kimi_specialist",
-        "name": "Kimi K2.5 (NVIDIA)",
+        "name": "Kimi K2 Thinking (NVIDIA)",
         "workspace": "/data/openclaw-kimi_specialist",
         "model": {
-          "primary": "nvidia/moonshotai/kimi-k2.5"
+          "primary": "nvidia/moonshotai/kimi-k2-thinking",
+          "fallbacks": ["nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"]
         }
       }
     ]
@@ -165,8 +170,24 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "nvidia": {
         "baseUrl": "https://integrate.api.nvidia.com/v1",
         "apiKey": "\${NVIDIA_API_KEY}",
-        "api": "openai-responses",
+        "api": "openai-completions",
         "models": [
+          {
+            "id": "moonshotai/kimi-k2-thinking",
+            "name": "Kimi K2 Thinking (NVIDIA)",
+            "reasoning": true,
+            "input": ["text"],
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "moonshotai/kimi-k2-instruct",
+            "name": "Kimi K2 Instruct (NVIDIA)",
+            "reasoning": false,
+            "input": ["text"],
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
           {
             "id": "moonshotai/kimi-k2.5",
             "name": "Kimi K2.5 (NVIDIA)",
