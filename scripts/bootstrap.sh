@@ -12,6 +12,26 @@ WORKSPACE_DIR="${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}"
 mkdir -p "$OPENCLAW_STATE" "$WORKSPACE_DIR"
 chmod 700 "$OPENCLAW_STATE"
 
+# Docker in this container cannot use host-only credential helpers
+# (e.g. docker-credential-dev-containers-<id>). Keep Docker config local
+# and sanitize unsupported helper directives if present.
+DOCKER_CONFIG_DIR="${DOCKER_CONFIG:-${HOME:-/data}/.docker}"
+DOCKER_CONFIG_FILE="$DOCKER_CONFIG_DIR/config.json"
+mkdir -p "$DOCKER_CONFIG_DIR"
+export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
+
+if [ -f "$DOCKER_CONFIG_FILE" ] && grep -q '"credsStore"\|"credHelpers"' "$DOCKER_CONFIG_FILE"; then
+    TMP_DOCKER_CONFIG="$(mktemp)"
+    if jq 'del(.credsStore, .credHelpers)' "$DOCKER_CONFIG_FILE" > "$TMP_DOCKER_CONFIG"; then
+        mv "$TMP_DOCKER_CONFIG" "$DOCKER_CONFIG_FILE"
+        chmod 600 "$DOCKER_CONFIG_FILE" 2>/dev/null || true
+        echo "🔧 Removed unsupported Docker credential helper settings from $DOCKER_CONFIG_FILE"
+    else
+        rm -f "$TMP_DOCKER_CONFIG"
+        echo "⚠️  Could not sanitize $DOCKER_CONFIG_FILE; leaving it unchanged"
+    fi
+fi
+
 mkdir -p "$OPENCLAW_STATE/credentials"
 mkdir -p "$OPENCLAW_STATE/agents/main/sessions"
 chmod 700 "$OPENCLAW_STATE/credentials"
