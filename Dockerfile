@@ -23,33 +23,36 @@ RUN set -eux; \
     apt-cache policy chromium chromium-browser || true; \
     echo "=== Apt debug: chromium search ==="; \
     apt-cache search '^chromium(-browser)?$' || true; \
+    APT_FLAGS="-y --no-install-recommends -o Acquire::Retries=5"; \
+    apt_install_retry() { \
+    pkg="$1"; \
+    for attempt in 1 2 3; do \
+    if apt-get install $APT_FLAGS "$pkg"; then \
+    return 0; \
+    fi; \
+    echo "Install failed for $pkg (attempt ${attempt}/3), retrying after apt-get update"; \
+    sleep 2; \
+    apt-get update || true; \
+    done; \
+    return 1; \
+    }; \
     # Install strict core dependencies first; fail fast if any are unavailable.
-    apt-get install -y --no-install-recommends \
-    curl \
-    wget \
-    git \
-    build-essential \
-    python3 \
-    python3-pip \
-    python3-venv \
-    jq \
-    openssl \
-    ca-certificates \
-    gnupg \
-    unzip; \
-    # Install quality-of-life and heavy tools only when available on this arch/repo set.
-    OPTIONAL_PKGS="software-properties-common lsof ripgrep fd-find fzf bat pandoc poppler-utils ffmpeg imagemagick graphviz sqlite3 pass"; \
-    INSTALLABLE_PKGS=""; \
-    for pkg in $OPTIONAL_PKGS; do \
-    if apt-cache show "$pkg" >/dev/null 2>&1; then \
-    INSTALLABLE_PKGS="$INSTALLABLE_PKGS $pkg"; \
-    else \
-    echo "Optional package not available, skipping: $pkg"; \
+    REQUIRED_PKGS="curl wget git build-essential python3 python3-pip python3-venv jq openssl ca-certificates gnupg unzip"; \
+    for pkg in $REQUIRED_PKGS; do \
+    if ! apt_install_retry "$pkg"; then \
+    echo "Required package failed to install: $pkg"; \
+    exit 1; \
     fi; \
     done; \
-    if [ -n "$INSTALLABLE_PKGS" ]; then \
-    apt-get install -y --no-install-recommends $INSTALLABLE_PKGS; \
+    # Install quality-of-life and heavy tools as best-effort.
+    OPTIONAL_PKGS="software-properties-common lsof ripgrep fd-find fzf bat pandoc poppler-utils ffmpeg imagemagick graphviz sqlite3 pass"; \
+    for pkg in $OPTIONAL_PKGS; do \
+    if apt_install_retry "$pkg"; then \
+    echo "Installed optional package: $pkg"; \
+    else \
+    echo "Optional package unavailable or failed, skipping: $pkg"; \
     fi; \
+    done; \
     if apt-cache show chromium >/dev/null 2>&1; then \
     apt-get install -y --no-install-recommends chromium; \
     elif apt-cache show chromium-browser >/dev/null 2>&1; then \
