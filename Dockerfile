@@ -23,32 +23,33 @@ RUN set -eux; \
     apt-cache policy chromium chromium-browser || true; \
     echo "=== Apt debug: chromium search ==="; \
     apt-cache search '^chromium(-browser)?$' || true; \
+    # Install strict core dependencies first; fail fast if any are unavailable.
     apt-get install -y --no-install-recommends \
     curl \
     wget \
     git \
     build-essential \
-    software-properties-common \
     python3 \
     python3-pip \
     python3-venv \
     jq \
-    lsof \
     openssl \
     ca-certificates \
     gnupg \
-    ripgrep \
-    fd-find \
-    fzf \
-    bat \
-    pandoc \
-    poppler-utils \
-    ffmpeg \
-    imagemagick \
-    graphviz \
-    sqlite3 \
-    pass \
     unzip; \
+    # Install quality-of-life and heavy tools only when available on this arch/repo set.
+    OPTIONAL_PKGS="software-properties-common lsof ripgrep fd-find fzf bat pandoc poppler-utils ffmpeg imagemagick graphviz sqlite3 pass"; \
+    INSTALLABLE_PKGS=""; \
+    for pkg in $OPTIONAL_PKGS; do \
+    if apt-cache show "$pkg" >/dev/null 2>&1; then \
+    INSTALLABLE_PKGS="$INSTALLABLE_PKGS $pkg"; \
+    else \
+    echo "Optional package not available, skipping: $pkg"; \
+    fi; \
+    done; \
+    if [ -n "$INSTALLABLE_PKGS" ]; then \
+    apt-get install -y --no-install-recommends $INSTALLABLE_PKGS; \
+    fi; \
     if apt-cache show chromium >/dev/null 2>&1; then \
     apt-get install -y --no-install-recommends chromium; \
     elif apt-cache show chromium-browser >/dev/null 2>&1; then \
