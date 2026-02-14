@@ -13,6 +13,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Install Core & Power Tools + Docker CLI (client only)
 RUN set -eux; \
     apt-get update; \
+    echo "=== Apt debug: distro + architecture ==="; \
+    . /etc/os-release; \
+    echo "ID=${ID} VERSION_CODENAME=${VERSION_CODENAME}"; \
+    dpkg --print-architecture; \
+    echo "=== Apt debug: configured sources ==="; \
+    grep -RhE '^(deb|deb-src) ' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true; \
+    echo "=== Apt debug: chromium policy ==="; \
+    apt-cache policy chromium chromium-browser || true; \
+    echo "=== Apt debug: chromium search ==="; \
+    apt-cache search '^chromium(-browser)?$' || true; \
     apt-get install -y --no-install-recommends \
     curl \
     wget \
