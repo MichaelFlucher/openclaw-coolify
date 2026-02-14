@@ -77,8 +77,14 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     apt-get install -y docker-ce-cli && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Go (Latest)
-RUN curl -L "https://go.dev/dl/go1.23.4.linux-amd64.tar.gz" -o go.tar.gz && \
+# Install Go (Latest) for current architecture
+RUN ARCH="$(dpkg --print-architecture)" && \
+    case "${ARCH}" in \
+    amd64) GO_ARCH="amd64" ;; \
+    arm64) GO_ARCH="arm64" ;; \
+    *) echo "Unsupported architecture for Go install: ${ARCH}" && exit 1 ;; \
+    esac && \
+    curl -L "https://go.dev/dl/go1.23.4.linux-${GO_ARCH}.tar.gz" -o go.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz && \
     rm go.tar.gz
 
