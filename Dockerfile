@@ -11,7 +11,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_ROOT_USER_ACTION=ignore
 
 # Install Core & Power Tools + Docker CLI (client only)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
     curl \
     wget \
     git \
@@ -25,7 +27,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     ca-certificates \
     gnupg \
-    ripgrep fd-find fzf bat \
+    ripgrep \
+    fd-find \
+    fzf \
+    bat \
     pandoc \
     poppler-utils \
     ffmpeg \
@@ -33,9 +38,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     graphviz \
     sqlite3 \
     pass \
-    chromium \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
+    unzip; \
+    if apt-cache show chromium >/dev/null 2>&1; then \
+    apt-get install -y --no-install-recommends chromium; \
+    elif apt-cache show chromium-browser >/dev/null 2>&1; then \
+    apt-get install -y --no-install-recommends chromium-browser; \
+    else \
+    echo "Chromium package not available for this distro/arch; continuing without it"; \
+    fi; \
+    rm -rf /var/lib/apt/lists/*
 
 # Stage 2: System CLI tools (change occasionally)
 FROM base AS system-tools
