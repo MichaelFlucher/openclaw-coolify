@@ -9,3 +9,7 @@ node_modules/
 .next/
 dist/
 # docs/
+
+# Local ops scripts
+install-openclaw-security-daily.sh
+set-openclaw-security-timer-0900.sh
