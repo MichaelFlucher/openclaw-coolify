@@ -275,6 +275,69 @@ export OPENCLAW_STATE_DIR="$OPENCLAW_STATE"
 [ -f scripts/sandbox-browser-setup.sh ] && bash scripts/sandbox-browser-setup.sh
 
 # ----------------------------
+# Managed skills (Playwright + local skills)
+# ----------------------------
+ensure_managed_skills() {
+  local skills_dir="$OPENCLAW_STATE/skills"
+  local lock_file="$OPENCLAW_STATE/.clawhub/lock.json"
+
+  mkdir -p "$skills_dir" "$OPENCLAW_STATE/.clawhub"
+
+  if [ ! -f "$lock_file" ]; then
+    cat >"$lock_file" <<'EOF'
+{
+  "version": 1,
+  "skills": {}
+}
+EOF
+  fi
+
+  # Install Playwright MCP skill once into persistent state.
+  if command -v clawhub >/dev/null 2>&1 && [ ! -d "$skills_dir/playwright-mcp" ]; then
+    echo "🎭 Installing playwright-mcp skill..."
+    clawhub install --workdir "$OPENCLAW_STATE" --no-input playwright-mcp || true
+  fi
+
+  # Ensure local bundled skills are available as managed skills as well.
+  for local_skill in web-utils sandbox-manager; do
+    if [ -d "/app/skills/$local_skill" ] && [ ! -d "$skills_dir/$local_skill" ]; then
+      echo "📦 Seeding local skill: $local_skill"
+      cp -a "/app/skills/$local_skill" "$skills_dir/"
+    fi
+  done
+
+  # Minimal metadata expected by the managed-skill indexer.
+  if [ -d "$skills_dir/web-utils" ] && [ ! -f "$skills_dir/web-utils/_meta.json" ]; then
+    echo '{"ownerId":"local","slug":"web-utils","version":"local","publishedAt":0}' >"$skills_dir/web-utils/_meta.json"
+  fi
+  if [ -d "$skills_dir/sandbox-manager" ] && [ ! -f "$skills_dir/sandbox-manager/_meta.json" ]; then
+    echo '{"ownerId":"local","slug":"sandbox-manager","version":"local","publishedAt":0}' >"$skills_dir/sandbox-manager/_meta.json"
+  fi
+
+  # Keep ClawHub lock in sync for local + remote managed skills.
+  if command -v jq >/dev/null 2>&1; then
+    local now
+    local tmp_lock
+    now="$(date +%s)000"
+    tmp_lock="$(mktemp)"
+    jq --argjson now "$now" '
+      .version = (.version // 1) |
+      .skills = (.skills // {}) |
+      .skills["playwright-mcp"] = (.skills["playwright-mcp"] // {"version":"1.0.0","installedAt":$now}) |
+      .skills["web-utils"] = (.skills["web-utils"] // {"version":"local","installedAt":$now}) |
+      .skills["sandbox-manager"] = (.skills["sandbox-manager"] // {"version":"local","installedAt":$now})
+    ' "$lock_file" >"$tmp_lock" && mv "$tmp_lock" "$lock_file"
+  fi
+
+  # Compatibility alias expected in some setups/docs.
+  if command -v playwright-mcp >/dev/null 2>&1; then
+    ln -sf "$(command -v playwright-mcp)" /usr/local/bin/playwright-cli || true
+  fi
+}
+
+ensure_managed_skills
+
+# ----------------------------
 # Recovery & Monitoring
 # ----------------------------
 if [ -f scripts/recover_sandbox.sh ]; then

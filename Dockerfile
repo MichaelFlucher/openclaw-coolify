@@ -133,7 +133,9 @@ FROM runtimes AS dependencies
 
 # OpenClaw install
 ARG OPENCLAW_BETA=false
+ARG OPENCLAW_VERSION=2026.2.21-2
 ENV OPENCLAW_BETA=${OPENCLAW_BETA} \
+    OPENCLAW_VERSION=${OPENCLAW_VERSION} \
     OPENCLAW_NO_ONBOARD=1 \
     NPM_CONFIG_UNSAFE_PERM=true
 
@@ -141,14 +143,16 @@ ENV OPENCLAW_BETA=${OPENCLAW_BETA} \
 RUN --mount=type=cache,target=/data/.bun/install/cache \
     bun install -g vercel @marp-team/marp-cli https://github.com/tobi/qmd && hash -r && \
     bun pm -g untrusted && \
-    bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summarize @hyperbrowser/agent clawhub
+    bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summarize @hyperbrowser/agent clawhub @playwright/mcp && \
+    ln -sf /usr/local/bin/playwright-mcp /usr/local/bin/playwright-cli && \
+    npx -y playwright install chromium
 
 # Install OpenClaw with npm cache mount
 RUN --mount=type=cache,target=/data/.npm \
     if [ "$OPENCLAW_BETA" = "true" ]; then \
     npm install -g openclaw@beta; \
     else \
-    npm install -g openclaw; \
+    npm install -g "openclaw@${OPENCLAW_VERSION:-latest}"; \
     fi && \
     if command -v openclaw >/dev/null 2>&1; then \
     echo "✅ openclaw binary found"; \
