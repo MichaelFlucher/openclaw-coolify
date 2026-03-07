@@ -117,6 +117,9 @@ ENV BUN_INSTALL_NODE=0 \
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
 
+# Ensure native Node addon builds can resolve node-gyp during bun global installs.
+RUN npm install -g node-gyp && node-gyp --version
+
 # Python tools
 RUN pip3 install ipython csvkit openpyxl python-docx pypdf botasaurus browser-use playwright --break-system-packages && \
     playwright install-deps
