@@ -118,6 +118,20 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local n
 - **Discord links:** Wrap multiple links in `<>` to suppress embeds: `<https://example.com>`
 - **WhatsApp:** No headers — use **bold** or CAPS for emphasis
 
+## Repo Ops Notes
+
+If this workspace is the `openclaw-coolify` repo, read:
+
+- `docs/diagnostics/openclaw-browser-recovery-overview.md`
+
+Current operational notes for that repo:
+
+- OpenClaw was upgraded to `2026.3.13`
+- the container restart policy should be `unless-stopped`
+- browser config is normalized in `scripts/bootstrap.sh`
+- `scripts/ensure-managed-browser.sh` is the watchdog workaround that keeps the
+  managed browser CDP endpoint alive when OpenClaw's own launcher is unreliable
+
 ## 💓 Heartbeats - Be Proactive!
 
 When you receive a heartbeat poll (message matches the configured heartbeat prompt), don't just reply `HEARTBEAT_OK` every time. Use heartbeats productively!

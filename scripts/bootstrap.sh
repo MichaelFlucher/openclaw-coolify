@@ -93,6 +93,48 @@ seed_agent "main" "OpenClaw"
 seed_agent "kimi_specialist" "Kimi K2.5 (NVIDIA)"
 
 # ----------------------------
+# Normalize Browser Config
+# ----------------------------
+normalize_browser_config() {
+  if [ ! -f "$CONFIG_FILE" ] || ! command -v jq >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local tmp_config
+  tmp_config="$(mktemp)"
+
+  # Older installs can pin legacy browser keys that break managed Chromium
+  # startup in containers. Keep only the current local-profile settings.
+  if jq '
+    .plugins.entries = ((.plugins.entries // {}) | del(."google-antigravity-auth")) |
+    .browser = (.browser // {}) |
+    .browser.headless = (.browser.headless // true) |
+    .browser.noSandbox = (.browser.noSandbox // true) |
+    .browser.defaultProfile = (.browser.defaultProfile // "openclaw") |
+    if .browser.profiles.openclaw? then
+      .browser.profiles.openclaw |= (
+        del(.driver, .executablePath) |
+        .cdpPort = (.cdpPort // 18800) |
+        .color = (.color // "#FF4500")
+      )
+    else
+      .
+    end
+  ' "$CONFIG_FILE" >"$tmp_config"; then
+    if ! cmp -s "$CONFIG_FILE" "$tmp_config"; then
+      mv "$tmp_config" "$CONFIG_FILE"
+      chmod 600 "$CONFIG_FILE" 2>/dev/null || true
+      echo "🔧 Normalized browser config in $CONFIG_FILE"
+    else
+      rm -f "$tmp_config"
+    fi
+  else
+    rm -f "$tmp_config"
+    echo "⚠️  Could not normalize browser config in $CONFIG_FILE"
+  fi
+}
+
+# ----------------------------
 # Generate Config with Prime Directive
 # ----------------------------
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -118,9 +160,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
       },
       "telegram": {
         "enabled": true
-      },
-      "google-antigravity-auth": {
-        "enabled": true
       }
     }
   },
@@ -130,6 +169,17 @@ if [ ! -f "$CONFIG_FILE" ]; then
     ],
     "install": {
       "nodeManager": "npm"
+    }
+  },
+  "browser": {
+    "headless": true,
+    "noSandbox": true,
+    "defaultProfile": "openclaw",
+    "profiles": {
+      "openclaw": {
+        "cdpPort": 18800,
+        "color": "#FF4500"
+      }
     }
   },
   "gateway": {
@@ -263,6 +313,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
 EOF
 fi
 
+normalize_browser_config
+
 # ----------------------------
 # Export state
 # ----------------------------
@@ -344,13 +396,15 @@ if [ -f scripts/recover_sandbox.sh ]; then
   echo "🛡️  Deploying Recovery Protocols..."
   cp scripts/recover_sandbox.sh "$WORKSPACE_DIR/"
   cp scripts/monitor_sandbox.sh "$WORKSPACE_DIR/"
-  chmod +x "$WORKSPACE_DIR/recover_sandbox.sh" "$WORKSPACE_DIR/monitor_sandbox.sh"
+  cp scripts/ensure-managed-browser.sh "$WORKSPACE_DIR/"
+  chmod +x "$WORKSPACE_DIR/recover_sandbox.sh" "$WORKSPACE_DIR/monitor_sandbox.sh" "$WORKSPACE_DIR/ensure-managed-browser.sh"
   
   # Run initial recovery
   bash "$WORKSPACE_DIR/recover_sandbox.sh"
   
   # Start background monitor
   nohup bash "$WORKSPACE_DIR/monitor_sandbox.sh" >/dev/null 2>&1 &
+  nohup bash "$WORKSPACE_DIR/ensure-managed-browser.sh" >/dev/null 2>&1 &
 fi
 
 # ----------------------------
