@@ -35,6 +35,24 @@ cdp_ready() {
   curl -fsS "http://127.0.0.1:${CDP_PORT}/json/version" >/dev/null 2>&1
 }
 
+clear_stale_profile_lock() {
+  local lock_target=""
+  if [ -L "${USER_DATA_DIR}/SingletonLock" ]; then
+    lock_target="$(readlink "${USER_DATA_DIR}/SingletonLock" || true)"
+  fi
+
+  if [ -n "$lock_target" ]; then
+    local lock_pid="${lock_target##*-}"
+    if ! ps -p "$lock_pid" >/dev/null 2>&1; then
+      log "Removing stale Chromium profile lock (${lock_target})"
+      rm -f \
+        "${USER_DATA_DIR}/SingletonLock" \
+        "${USER_DATA_DIR}/SingletonCookie" \
+        "${USER_DATA_DIR}/SingletonSocket"
+    fi
+  fi
+}
+
 start_browser() {
   local browser_bin="$1"
   local args=(
@@ -58,6 +76,7 @@ start_browser() {
 
   mkdir -p "$USER_DATA_DIR"
   pkill -f "remote-debugging-port=${CDP_PORT}" >/dev/null 2>&1 || true
+  clear_stale_profile_lock
   nohup "$browser_bin" "${args[@]}" >>"$LOG_FILE" 2>&1 &
 }
 
