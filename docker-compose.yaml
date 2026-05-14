@@ -11,7 +11,7 @@ services:
       context: .
       args:
         - OPENCLAW_BETA=${OPENCLAW_BETA:-false}
-        - OPENCLAW_VERSION=${OPENCLAW_VERSION:-2026.3.13}
+        - OPENCLAW_VERSION=${OPENCLAW_VERSION:-2026.4.14}
     restart: unless-stopped
     ulimits:
       nofile:
