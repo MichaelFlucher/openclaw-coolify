@@ -183,7 +183,7 @@
         "model": "google/gemini-2.0-flash"
       },
       "sandbox": {
-        "mode": "non-main",
+        "mode": "off",
         "scope": "session",
         "browser": {
           "enabled": true

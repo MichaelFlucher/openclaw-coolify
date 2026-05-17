@@ -214,7 +214,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
         "model": "nvidia/moonshotai/kimi-k2-thinking"
       },
       "sandbox": {
-        "mode": "non-main",
+        "mode": "off",
         "scope": "session",
         "browser": {
           "enabled": true
