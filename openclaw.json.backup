@@ -190,6 +190,7 @@
         }
       },
       "models": {
+        "openai/gpt-5.5": {},
         "anthropic/claude-opus-4-6": {},
         "nvidia/moonshotai/kimi-k2-thinking": {},
         "nvidia/moonshotai/kimi-k2-instruct": {},
@@ -206,11 +207,9 @@
         "name": "default",
         "workspace": "/data/openclaw-workspace",
         "model": {
-          "primary": "google/gemini-3-flash-preview",
+          "primary": "openai/gpt-5.5",
           "fallbacks": [
-            "nvidia/moonshotai/kimi-k2-thinking",
-            "nvidia/moonshotai/kimi-k2-instruct",
-            "nvidia/moonshotai/kimi-k2.5"
+            "anthropic/claude-opus-4-6"
           ]
         }
       },

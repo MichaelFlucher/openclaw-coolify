@@ -211,7 +211,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "maxConcurrent": 4,
       "subagents": {
         "maxConcurrent": 8,
-        "model": "nvidia/moonshotai/kimi-k2-thinking"
+        "model": "openai/gpt-5.5"
       },
       "sandbox": {
         "mode": "off",
@@ -222,7 +222,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
       }
     },
     "list": [
-      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "nvidia/moonshotai/kimi-k2-thinking", "fallbacks": ["nvidia/moonshotai/kimi-k2-instruct", "nvidia/moonshotai/kimi-k2.5"] }},
+      { "id": "main","default": true, "name": "default",  "workspace": "${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}", "model": { "primary": "openai/gpt-5.5", "fallbacks": ["anthropic/claude-opus-4-6"] }},
       {
         "id": "kimi_specialist",
         "name": "Kimi K2 Thinking (NVIDIA)",
