@@ -3,6 +3,8 @@
 # Each stage builds on the previous, with COPY . . only in the final stage
 # BuildKit features: cache mounts, parallel builds, improved layer caching
 
+FROM golang:1.23.4-bookworm AS go-toolchain
+
 # Stage 1: Base system dependencies (rarely changes)
 FROM node:lts-bookworm-slim AS base
 
@@ -77,17 +79,8 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     apt-get install -y docker-ce-cli && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Go (Latest) for current architecture
-RUN ARCH="$(dpkg --print-architecture)" && \
-    case "${ARCH}" in \
-    amd64) GO_ARCH="amd64" ;; \
-    arm64) GO_ARCH="arm64" ;; \
-    *) echo "Unsupported architecture for Go install: ${ARCH}" && exit 1 ;; \
-    esac && \
-    curl -fL --connect-timeout 20 --max-time 300 --retry 3 \
-    "https://dl.google.com/go/go1.23.4.linux-${GO_ARCH}.tar.gz" -o go.tar.gz && \
-    tar -C /usr/local -xzf go.tar.gz && \
-    rm go.tar.gz
+# Copy the pinned Go toolchain from its official multi-platform image.
+COPY --from=go-toolchain /usr/local/go /usr/local/go
 
 # Install Cloudflare Tunnel (cloudflared)
 RUN ARCH=$(dpkg --print-architecture) && \
