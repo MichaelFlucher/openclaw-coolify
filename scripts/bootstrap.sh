@@ -113,9 +113,8 @@ normalize_browser_config() {
     .browser.defaultProfile = (.browser.defaultProfile // "openclaw") |
     if .browser.profiles.openclaw? then
       .browser.profiles.openclaw |= (
-        del(.driver, .executablePath) |
-        .cdpPort = (.cdpPort // 18800) |
-        .color = (.color // "#FF4500")
+        del(.driver, .executablePath, .color) |
+        .cdpPort = (.cdpPort // 18800)
       )
     else
       .
@@ -177,8 +176,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
     "defaultProfile": "openclaw",
     "profiles": {
       "openclaw": {
-        "cdpPort": 18800,
-        "color": "#FF4500"
+        "cdpPort": 18800
       }
     }
   },
