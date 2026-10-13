@@ -11,7 +11,7 @@ Read this first when working on runtime or deployment issues:
 
 ## Current Operational State
 
-- OpenClaw is pinned to `2026.3.13`
+- OpenClaw is pinned to `2026.10.2` (Coolify's `OPENCLAW_VERSION` must match)
 - the OpenClaw container should use `restart: unless-stopped`
 - browser config normalization happens in `scripts/bootstrap.sh`
 - `scripts/ensure-managed-browser.sh` is the current watchdog workaround for
