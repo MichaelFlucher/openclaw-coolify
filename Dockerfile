@@ -84,7 +84,8 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     arm64) GO_ARCH="arm64" ;; \
     *) echo "Unsupported architecture for Go install: ${ARCH}" && exit 1 ;; \
     esac && \
-    curl -L "https://go.dev/dl/go1.23.4.linux-${GO_ARCH}.tar.gz" -o go.tar.gz && \
+    curl -fL --connect-timeout 20 --max-time 300 --retry 3 \
+    "https://dl.google.com/go/go1.23.4.linux-${GO_ARCH}.tar.gz" -o go.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz && \
     rm go.tar.gz
 
