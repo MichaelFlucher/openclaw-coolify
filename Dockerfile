@@ -6,7 +6,7 @@
 FROM golang:1.23.4-bookworm AS go-toolchain
 
 # Stage 1: Base system dependencies (rarely changes)
-FROM node:lts-bookworm-slim AS base
+FROM node:24.22.1-bookworm-slim AS base
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive \
