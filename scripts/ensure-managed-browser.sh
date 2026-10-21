@@ -4,6 +4,17 @@ set -euo pipefail
 OPENCLAW_STATE="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
 CONFIG_FILE="${OPENCLAW_STATE}/openclaw.json"
 LOG_FILE="${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}/browser-monitor.log"
+PAUSE_FILE="${OPENCLAW_STATE}/browser-watchdog.paused"
+ONCE=false
+case "${1:-}" in
+  --once) ONCE=true ;;
+  "") ;;
+  *) echo "Usage: $0 [--once]" >&2; exit 2 ;;
+esac
+# A persisted pause suppresses automatic startup, not explicit on-demand use.
+if [ "$ONCE" = false ] && [ -e "$PAUSE_FILE" ]; then
+  exit 0
+fi
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
@@ -32,7 +43,7 @@ find_browser() {
 }
 
 cdp_ready() {
-  curl -fsS "http://127.0.0.1:${CDP_PORT}/json/version" >/dev/null 2>&1
+  curl --connect-timeout 1 --max-time 2 -fsS "http://127.0.0.1:${CDP_PORT}/json/version" >/dev/null 2>&1
 }
 
 clear_stale_profile_lock() {
@@ -75,14 +86,22 @@ start_browser() {
   fi
 
   mkdir -p "$USER_DATA_DIR"
-  pkill -f "remote-debugging-port=${CDP_PORT}" >/dev/null 2>&1 || true
   clear_stale_profile_lock
-  nohup "$browser_bin" "${args[@]}" >>"$LOG_FILE" 2>&1 &
+  nohup "$browser_bin" "${args[@]}" 8>&- 9>&- >>"$LOG_FILE" 2>&1 &
 }
 
 if [ ! -f "$CONFIG_FILE" ] || ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
   exit 0
 fi
+
+# Serialize watchdog/on-demand launch decisions; kernel releases stale locks.
+# Browser children must not inherit this descriptor.
+if [ "$ONCE" = false ]; then
+  exec 8>"${OPENCLAW_STATE}/browser-watchdog-daemon.lock"
+  flock -n 8 || exit 0
+fi
+exec 9>"${OPENCLAW_STATE}/browser-watchdog.lock"
+flock -w 15 9 || exit 1
 
 CDP_PORT="$(config_jq '.browser.profiles.openclaw.cdpPort')"
 HEADLESS="$(config_jq '.browser.headless')"
@@ -102,6 +121,9 @@ fi
 log "Managed browser watchdog started (cdpPort=${CDP_PORT})"
 
 while true; do
+  if [ "$ONCE" = false ] && [ -e "$PAUSE_FILE" ]; then
+    exit 0
+  fi
   if ! cdp_ready; then
     if browser_bin="$(find_browser)"; then
       log "Starting managed browser via ${browser_bin}"
@@ -123,5 +145,12 @@ while true; do
     fi
   fi
 
+  if [ "$ONCE" = true ]; then
+    cdp_ready
+    exit $?
+  fi
+  # Release the launch lock while idle so --once does not wait on the daemon.
+  flock -u 9
   sleep 30
+  flock -w 15 9 || exit 1
 done

@@ -394,15 +394,18 @@ if [ -f scripts/recover_sandbox.sh ]; then
   echo "🛡️  Deploying Recovery Protocols..."
   cp scripts/recover_sandbox.sh "$WORKSPACE_DIR/"
   cp scripts/monitor_sandbox.sh "$WORKSPACE_DIR/"
-  cp scripts/ensure-managed-browser.sh "$WORKSPACE_DIR/"
-  chmod +x "$WORKSPACE_DIR/recover_sandbox.sh" "$WORKSPACE_DIR/monitor_sandbox.sh" "$WORKSPACE_DIR/ensure-managed-browser.sh"
+  source scripts/install-managed-browser.sh
+  install_managed_browser scripts/ensure-managed-browser.sh "$WORKSPACE_DIR/ensure-managed-browser.sh"
+  chmod +x "$WORKSPACE_DIR/recover_sandbox.sh" "$WORKSPACE_DIR/monitor_sandbox.sh"
   
   # Run initial recovery
   bash "$WORKSPACE_DIR/recover_sandbox.sh"
   
   # Start background monitor
   nohup bash "$WORKSPACE_DIR/monitor_sandbox.sh" >/dev/null 2>&1 &
-  nohup bash "$WORKSPACE_DIR/ensure-managed-browser.sh" >/dev/null 2>&1 &
+  if [ ! -e "$OPENCLAW_STATE/browser-watchdog.paused" ]; then
+    nohup bash "$WORKSPACE_DIR/ensure-managed-browser.sh" >/dev/null 2>&1 &
+  fi
 fi
 
 # ----------------------------

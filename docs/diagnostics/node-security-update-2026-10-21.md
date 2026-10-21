@@ -8,9 +8,10 @@ OpenClaw stays pinned to 2026.10.2. This is not an OpenClaw runtime upgrade;
 no configuration-schema migration, Doctor repair, bridge release, model change,
 index deletion, or state-file repair is requested or performed.
 
-Only the Dockerfile Node base line and this document change. Compose environment,
-volumes, restart policy, bootstrap/browser scripts, global model inheritance,
-Go 1.23.4 copy stage and application version pins remain untouched.
+The initial checkpoint changed only the Dockerfile Node base and this document.
+The preservation preflight adds the narrowly scoped browser helper/install fix
+described below. Compose environment, volumes, restart policy, global model
+inheritance, Go 1.23.4 copy stage and application version pins remain untouched.
 
 ## Preparation verification (completed)
 
@@ -94,3 +95,74 @@ all relevant post-rollout checks before marking the security task done.
 - https://nodejs.org/en/blog/vulnerability/october-2026-security-releases
 - [Latest repository upgrade/recovery](openclaw-upgrade-2026-10-13.md)
 - [Historical browser fallback](openclaw-browser-recovery-overview.md)
+
+## Browser/embedding preservation preflight (repository checkpoint)
+
+The live helper was inspected read-only. It matched the repository's legacy
+helper, which did not implement the documented pause marker or --once option.
+Bootstrap copied that helper over the persistent workspace and always launched
+it. A persisted browser-watchdog.paused file alone therefore did not make the
+old startup path safe. This is a concrete pre-rollout regression risk, not proof
+that an old customized implementation was preserved.
+
+The checkpoint fixes that path without starting or stopping live services:
+
+- Bootstrap suppresses automatic browser startup while the persisted pause marker
+  exists. The helper also checks it on entry and between monitoring iterations.
+- Explicit --once starts/checks CDP once and exits; it does not clear the pause
+  marker or change the existing profile path. Existing ready CDP is reused.
+- Kernel file locks serialize launch decisions and deduplicate watchdog daemons;
+  browser children do not retain those locks. Broad pkill-by-port is removed.
+- The installer upgrades only the exact legacy helper checksum, or installs into
+  an absent destination. Other existing helpers are kept byte-for-byte, including
+  their file mode. It does not overwrite private operational customization.
+- Stub-only tests exercise pause/no startup, --once, concurrent launch, daemon
+  deduplication, profile argument preservation and fresh/legacy/custom installation.
+  Run bash scripts/test-managed-browser.sh; the test runner may additionally supply
+  LEGACY_BROWSER_HELPER pointing to the unchanged pre-checkpoint helper. No actual
+  browser, gateway, package installation or production lifecycle is invoked.
+
+The compatible native embedding wrapper was inspected read-only. It executes
+its persisted compatibility loader/libraries and llama-server under
+/data/.openclaw/tools/llama.cpp and appends --sleep-idle-seconds 60. The compatible
+loader, native server and GGUF model are present under /data. The live container
+mounts /data as the existing project-prefixed openclaw-data named volume; the
+legacy config/workspace named volumes remain mounted separately. Thus those
+embedding files and all state/index paths survive an image replacement provided
+those exact mounts are retained. No wrapper, index, model configuration, provider
+or runtime state was edited. Runtime unload/semantic behavior after replacement
+remains a post-rollout check, not established by file persistence alone.
+
+### Private backup and recovery handoff (not executed in preflight)
+
+The repository has no complete full-state backup/restore utility. Its
+scripts/migrate-to-data.sh is a layout migration helper, not a coherent backup.
+Existing Docker volume/lifecycle tooling, tar, gzip, sha256sum and sqlite3 are
+available; prefer the established private operational backup tooling if present.
+Do not run the old bridge or Doctor to prepare this Node-only update.
+
+Before self-rollout, the operator must discover/record the exact current mounts,
+container/image identity and privately retained runtime environment. Preserve all
+three existing named volumes: openclaw-data, openclaw-config and
+openclaw-workspace, with their actual project prefixes. The data scope includes
+active SQLite/WAL files, agent/plugin state, credentials, models/indexes, native
+embedding loader/libraries/wrapper, pause marker, browser profiles/login data and
+the persistent workspace. Capture any external bind-mounted paths separately if
+the freshly discovered mount receipt contains them.
+
+A coherent full-state copy or storage snapshot requires the authorized owning
+Docker gateway to be stopped, with no second owner/writer or maintenance process
+using the same state. Retain originals, ownership/mode metadata and the previous
+image; keep backup material private and outside these volumes/public Git. Verify
+archive/snapshot integrity and coverage, plus a restore/readability check of the
+copied SQLite files in an isolated recovery location. An inventory/hash receipt
+alone is not a full backup. No archive, snapshot, restore test or stop was performed
+in this bounded source preflight.
+
+If replacement fails, collect bounded logs, stop the new owner, and restore the
+recorded old image against unchanged schemas. If state was unexpectedly migrated,
+restore the verified coherent state backup rather than running the old image or
+bridge against newer schemas. Preserve the same named mounts and hostname where
+required by the retained update ledger. Never delete old state, browser logins,
+indexes or backup artifacts to make startup pass. OpenClaw remains 2026.10.2;
+any unexpected migration request is a blocker to investigate.
